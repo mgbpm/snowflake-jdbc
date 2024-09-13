@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import java.io.BufferedReader;
+import java.io.Console;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -45,6 +46,9 @@ public class SessionUtilExternalBrowser {
 
     // output
     void output(String msg);
+
+    // input
+    String input();
   }
 
   static class DefaultAuthExternalBrowserHandlers implements AuthExternalBrowserHandlers {
@@ -82,6 +86,11 @@ public class SessionUtilExternalBrowser {
     @Override
     public void output(String msg) {
       System.out.println(msg);
+    }
+
+    @Override
+    public String input() {
+      return System.console().readLine();
     }
   }
 
@@ -226,29 +235,53 @@ public class SessionUtilExternalBrowser {
     try {
       // main procedure
       int port = this.getLocalPort(ssocket);
-      logger.debug("Listening localhost:{}", port);
-      String ssoUrl = getSSOUrl(port);
+      logger.debug("Listening localhost: {}", port);
+
+      String authUrl = getSSOUrl(port);
       this.handlers.output(
-          "Initiating login request with your identity provider. A "
+          "Initiating login request with your identity provider(s). A "
               + "browser window should have opened for you to complete the "
               + "login. If you can't see it, check existing browser windows, "
               + "or your OS settings. Press CTRL+C to abort and try again...");
-      this.handlers.openBrowser(ssoUrl);
-
-      while (true) {
-        Socket socket = ssocket.accept(); // start accepting the request
-        try {
-          BufferedReader in =
-              new BufferedReader(new InputStreamReader(socket.getInputStream(), UTF8_CHARSET));
-          char[] buf = new char[16384];
-          int strLen = in.read(buf);
-          String[] rets = new String(buf, 0, strLen).split("\r\n");
-          if (!processOptions(rets, socket)) {
-            processSamlToken(rets, socket);
-            break;
+      try {
+        this.handlers.openBrowser(authUrl);
+        while (true) {
+          Socket socket = ssocket.accept(); // start accepting the request
+          try {
+            BufferedReader in =
+                new BufferedReader(new InputStreamReader(socket.getInputStream(), UTF8_CHARSET));
+            char[] buf = new char[16384];
+            int strLen = in.read(buf);
+            String[] rets = new String(buf, 0, strLen).split("\r\n");
+            if (!processOptions(rets, socket)) {
+              processSamlToken(rets, socket);
+              break;
+            }
+          } finally {
+            socket.close();
           }
-        } finally {
-          socket.close();
+        }
+      } catch (SFException e) {
+        this.handlers.output(authUrl);
+        this.handlers.output(
+          "We were unable to open a browser window for you, " 
+          + "please open the url above manually then paste the "
+          + "URL you are redirected to into the terminal.");
+        String redirectUrl = this.handlers.input();
+        try {
+          URI inputParameter = new URI(redirectUrl);
+          for (NameValuePair urlParam : URLEncodedUtils.parse(inputParameter, UTF8_CHARSET)) {
+            if ("token".equals(urlParam.getName())) {
+              this.token = urlParam.getValue();
+              break;
+            }
+          }
+        } catch (URISyntaxException ex0) {
+          throw new SFException(
+              ErrorCode.NETWORK_ERROR,
+              String.format(
+                  "Invalid redirect url. No token is given from the browser. %s, err: %s",
+                  redirectUrl, ex0));
         }
       }
     } catch (IOException ex) {
