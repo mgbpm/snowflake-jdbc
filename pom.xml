@@ -11,7 +11,7 @@
   </parent>
 
   <artifactId>snowflake-jdbc</artifactId>
-  <version>3.14.4</version>
+  <version>3.14.4-MGBPM</version>
   <packaging>jar</packaging>
 
   <name>snowflake-jdbc</name>
@@ -21,6 +21,19 @@
     <connection>scm:git:https://github.com/snowflakedb/snowflake-jdbc.git</connection>
     <url>https://github.com/snowflakedb/snowflake-jdbc</url>
   </scm>
+
+  <distributionManagement>
+    <repository>
+      <id>MGBPMIT-AppPackages</id>
+      <url>https://pkgs.dev.azure.com/MGB/MGBPM-IT/_packaging/MGBPMIT-AppPackages/maven/v1</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </distributionManagement>
 
   <dependencies>
     <dependency>
@@ -32,6 +45,19 @@
       <artifactId>bcprov-jdk18on</artifactId>
     </dependency>
   </dependencies>
+
+  <repositories>
+    <repository>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <id>MGBPMIT-AppPackages</id>
+      <url>https://pkgs.dev.azure.com/MGB/MGBPM-IT/_packaging/MGBPMIT-AppPackages/maven/v1</url>
+    </repository>
+  </repositories>
 
   <build>
     <finalName>${project.artifactId}</finalName>
