@@ -11,7 +11,7 @@
   </parent>
 
   <artifactId>snowflake-jdbc</artifactId>
-  <version>3.14.4-MGBPM</version>
+  <version>3.14.4-MGBPM2</version>
   <packaging>jar</packaging>
 
   <name>snowflake-jdbc</name>
