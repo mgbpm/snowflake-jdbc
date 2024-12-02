@@ -12,7 +12,7 @@
 
   <!-- Maven complains about using property here, but it makes install and deploy process easier to override final package names and localization -->
   <artifactId>${artifactId}</artifactId>
-  <version>3.17.0</version>
+  <version>3.17.0-MGBPM</version>
   <packaging>jar</packaging>
 
   <name>${artifactId}</name>
@@ -22,6 +22,19 @@
     <connection>scm:git:https://github.com/snowflakedb/snowflake-jdbc.git</connection>
     <url>https://github.com/snowflakedb/snowflake-jdbc</url>
   </scm>
+
+  <distributionManagement>
+    <repository>
+      <id>MGBPMIT-AppPackages</id>
+      <url>https://pkgs.dev.azure.com/MGB/MGBPM-IT/_packaging/MGBPMIT-AppPackages/maven/v1</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </distributionManagement>
 
   <properties>
     <artifactId>snowflake-jdbc</artifactId>
